@@ -7,17 +7,17 @@ rasterize.XYZ <- function(xyzObject){
   run.function <- TRUE
   
   if (is.null(xyzObject[["fileName"]]) == TRUE){
-    print ("You have not provided a input xyz file")
+    warning ("You have not provided a input xyz file")
     run.function <- FALSE
   }
   
   if (is.null(xyzObject[["CRS"]]) == TRUE){
-    print ("You have not provided the CRS (coordinate system")
+    warning ("You have not provided the CRS (coordinate system")
     run.function <- FALSE
   }
   
   if (is.null(xyzObject[["resolution"]]) == TRUE){
-    print ("You have not provided the output resolution")
+    warning ("You have not provided the output resolution")
     run.function <- FALSE
   }
   
@@ -39,11 +39,11 @@ rasterize.XYZ <- function(xyzObject){
                             xmn=min(data.xyz[,1]), xmx=max(data.xyz[,1]), ymn=min(data.xyz[,2]), ymx=max(data.xyz[,2]),
                             crs = xyzObject$CRS, resolution = xyzObject$resolution)
     
-    newRaster <- rasterize(data.xyz[, 1:2], empty.raster, data.xyz [,3], fun=xyzObject$Fun)
+    new.raster <- rasterize(data.xyz[, 1:2], empty.raster, data.xyz [,3], fun=xyzObject$Fun)
     
     filename = file.path(xyzObject$outDir, paste(xyzObject$fileName,".tif", sep=""))
     
-    writeRaster(newRaster, filename=filename, format="GTiff", overwrite=TRUE)
+    writeRaster(new.raster, filename=filename, format="GTiff", overwrite=TRUE)
     
     return (filename)
   }
@@ -52,23 +52,53 @@ rasterize.XYZ <- function(xyzObject){
 
 
 mosaic.multi <- function(inDir=NULL, pattern=NULL, outName=NULL, FUN=NULL, tolerance = 0.5 ){
+  # checking conditions
+  run.function <- TRUE
   
-  # finding files in dir
-  filenames <- list.files(inDir, pattern=pattern, full.names=TRUE)
-  # openning the files
+  if (is.null(inDir) == TRUE){
+    warning ("You have not provided an input directory file")
+    run.function <- FALSE
+  }
   
-  mosaicObject <- lapply(filenames, raster)
+  if (is.null(pattern) == TRUE){
+    warning ("You have not provided a search pattern")
+    run.function <- FALSE
+  }
   
-  # Add atributes to 
+  if (is.null(outName) == TRUE){
+    warning ("You have not provided an ouput name")
+    run.function <- FALSE
+  }
   
-  mosaicObject$filename <- file.path(inDir, outName)
-  mosaicObject$fun <- FUN
-  mosaicObject$tolerance <- tolerance
-
+  if (is.null(outName) == TRUE){
+    warning ("You have not provided an fun method")
+    run.function <- FALSE
+  }
   
-  cat("Merging a bunch of files")
-  do.call(merge, mosaicObject)
+  if (is.null(tolerance) == TRUE){
+    warning ("You have not provided a tolerance value")
+    run.function <- FALSE
+  }
+  
+  if (run.function == TRUE){
+    # finding files in dir
+    filenames <- list.files(inDir, pattern=pattern, full.names=TRUE)
+    # openning the files
+    
+    mosaicObject <- lapply(filenames, raster)
+    
+    # Add atributes to 
+    
+    mosaicObject$filename <- file.path(inDir, outName)
+    mosaicObject$fun <- FUN
+    mosaicObject$tolerance <- tolerance
+  
+    
+    cat("Merging a bunch of files")
+    do.call(merge, mosaicObject)
   
   return(mosaicObject$filename)
   
+  }
+
 }
