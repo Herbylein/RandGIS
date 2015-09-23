@@ -19,3 +19,7 @@ nestates <- c("Maine", "Vermont", "Massachusetts", "New Hampshire" ,"Connecticut
 
 ne = us[match(toupper(nestates),toupper(us$NAME_1)),]
 
+
+
+# http://geoscripting-wur.github.io/IntroToRaster/
+
