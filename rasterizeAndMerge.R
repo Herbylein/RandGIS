@@ -1,6 +1,6 @@
 ## Functions
 
-# 1. Write a function to create the rasters
+# 1. Write a function to create the rasters from single folders
 rasterize.XYZ <- function(xyzObject){
   
   # checking conditions
@@ -50,6 +50,75 @@ rasterize.XYZ <- function(xyzObject){
   
 }
 
+##################################################################################################################
+
+# Write a function to create the rasters from single folders, but first merge them
+rasterize.XYZlowerResolution <- function(xyzObject){
+  
+  # checking conditions
+  run.function <- TRUE
+
+  if (is.null(xyzObject[["filenames"]]) == TRUE){
+    print ("You have not provided a input xyz file")
+    run.function <- FALSE
+  }
+  
+  if (is.null(xyzObject[["CRS"]]) == TRUE){
+    print ("You have not provided the CRS (coordinate system")
+    run.function <- FALSE
+  }
+  
+  if (is.null(xyzObject[["resolution"]]) == TRUE){
+    print ("You have not provided the output resolution")
+    run.function <- FALSE
+  }
+  
+  # Check files
+  fileNames <- xyzObject$filenames
+  #for (j in 1:length(fileNames)){
+  #  if (!file.exists(fileNames[j]) == TRUE){
+  #    fileNames <- fileNames[-j]
+  #  }
+  #}
+  info <- file.info(fileNames)
+  fileNames.notempty = rownames(info[info$size != 0, ])
+
+  # Running the function
+  if (run.function==TRUE){
+    
+    # Opening the file
+    data <- lapply(fileNames.notempty, function(x) {
+      read.table(x, header = FALSE, sep = "", colClasses = rep("numeric", 3) )      
+    })
+    # remove large values
+    data.all <- do.call("rbind",data)
+    data.xyz <- data.all[ data.all[[3]] < 60, ] 
+    
+    if (max(data.xyz[,2])-min(data.xyz[,2]) <= 0){
+      cat("Error with Y coordinates. Min Y larger or equal to max Y.")
+      run.function <-FALSE
+    }
+    if (max(data.xyz[,1])-min(data.xyz[,1]) <= 0){
+      cat("Error with X coordinates. Min X larger or equal to max X.")
+      run.function <-FALSE
+    }
+  }
+  if (run.function==TRUE){
+    empty.raster  <- raster(nrows=(max(data.xyz[,2])-min(data.xyz[,2])), ncols=(max(data.xyz[,1])-min(data.xyz[,1])), 
+                            xmn=min(data.xyz[,1]), xmx=max(data.xyz[,1]), ymn=min(data.xyz[,2]), ymx=max(data.xyz[,2]),
+                            crs = xyzObject$CRS, resolution = xyzObject$resolution)
+    
+    newRaster <- rasterize(data.xyz[,1:2], empty.raster, data.xyz[,3], fun=xyzObject$Fun)
+    
+    writeRaster(newRaster, filename=file.path(xyzObject$outDir, xyzObject$outName), format="GTiff", overwrite=TRUE)
+    
+    return ( file.path(xyzObject$outDir, xyzObject$outName))
+    }
+  
+}
+
+
+##################################################################################################################
 
 mosaic.multi <- function(inDir=NULL, pattern=NULL, outName=NULL, FUN=NULL, tolerance = 0.5 ){
   # checking conditions
