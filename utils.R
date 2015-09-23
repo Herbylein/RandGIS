@@ -9,3 +9,13 @@ sub("^([^.]*).*", "\\1", 'filename without extension')
 info <- info = file.info(fileNames)
 fileNames.notempty = rownames(info[info$size != 0, ])
 fileNames.empty = rownames(info[info$size == 0, ])
+
+# get administrative boders (world) : http://www.gadm.org/
+us <- getData("GADM", country="USA", level=1)
+# extract states (need to uppercase everything)
+nestates <- c("Maine", "Vermont", "Massachusetts", "New Hampshire" ,"Connecticut",
+         "Rhode Island","New York","Pennsylvania", "New Jersey",
+         "Maryland", "Delaware", "Virginia", "West Virginia")
+
+ne = us[match(toupper(nestates),toupper(us$NAME_1)),]
+
