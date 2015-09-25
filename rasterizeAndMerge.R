@@ -75,11 +75,6 @@ rasterize.XYZlowerResolution <- function(xyzObject){
   
   # Check files
   fileNames <- xyzObject$filenames
-  #for (j in 1:length(fileNames)){
-  #  if (!file.exists(fileNames[j]) == TRUE){
-  #    fileNames <- fileNames[-j]
-  #  }
-  #}
   info <- file.info(fileNames)
   fileNames.notempty = rownames(info[info$size != 0, ])
 
@@ -90,10 +85,11 @@ rasterize.XYZlowerResolution <- function(xyzObject){
     data <- lapply(fileNames.notempty, function(x) {
       read.table(x, header = FALSE, sep = "", colClasses = rep("numeric", 3) )      
     })
-    # remove large values
     data.all <- do.call("rbind",data)
-    data.xyz <- data.all[ data.all[[3]] < 60, ] 
+    clean <- data.all[ !is.na(data.all[[3]]), ] 
+    data.xyz <- clean[ clean[[3]] < 60, ] 
     
+
     if (max(data.xyz[,2])-min(data.xyz[,2]) <= 0){
       cat("Error with Y coordinates. Min Y larger or equal to max Y.")
       run.function <-FALSE
@@ -116,7 +112,6 @@ rasterize.XYZlowerResolution <- function(xyzObject){
     }
   
 }
-
 
 ##################################################################################################################
 
